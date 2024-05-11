@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.*
 import okhttp3.*
 import okhttp3.logging.HttpLoggingInterceptor
+import ru.netology.coroutines.dto.Author
 import ru.netology.coroutines.dto.Comment
 import ru.netology.coroutines.dto.Post
 import ru.netology.coroutines.dto.PostWithComments
@@ -183,6 +184,32 @@ suspend fun <T> makeRequest(url: String, client: OkHttpClient, typeToken: TypeTo
 
 suspend fun getPosts(client: OkHttpClient): List<Post> =
     makeRequest("$BASE_URL/api/slow/posts", client, object : TypeToken<List<Post>>() {})
+        .map {
+            val author = makeRequest(
+                "$BASE_URL/api/authors/${it.authorId}",
+                client,
+                object : TypeToken<Author>() {})
+            it.copy(
+                author = author.name,
+                authorAvatar = author.avatar
+            )
+
+        }
+
 
 suspend fun getComments(client: OkHttpClient, id: Long): List<Comment> =
-    makeRequest("$BASE_URL/api/slow/posts/$id/comments", client, object : TypeToken<List<Comment>>() {})
+    makeRequest(
+        "$BASE_URL/api/slow/posts/$id/comments",
+        client,
+        object : TypeToken<List<Comment>>() {})
+        .map {
+            val author = makeRequest(
+                "$BASE_URL/api/authors/${it.authorId}",
+                client,
+                object : TypeToken<Author>() {})
+            it.copy(
+                author = author.name,
+                authorAvatar = author.avatar
+            )
+        }
+
